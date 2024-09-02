@@ -1,0 +1,890 @@
+    def sort_and_index( A):
+        """ generated source for method sort_and_index """
+        outt=sorted(enumerate(A), key=lambda x:x[1])
+        return outt
+
+    def norm( x):#sqart(x**2+y**2)
+        """ generated source for method norm """
+        len1 = len(x)
+        sum1 = 0.0
+        i = 0
+        for i in range(len1):
+            sum1 += x[i] * x[i]
+        return math.sqrt(sum1)
+
+    def sortedd( TT):#按fitness大小对solution进行排序（从小到大）
+        """ generated source for method sorted """
+        mm = len(TT)
+        nn = len(TT[0])
+        TNEW = establish_matrix(mm,nn)
+        fitnessTT = [None]*mm
+        
+        for i in range(mm):
+            fitnessTT[i] = fit_func(TT[i])
+            
+        FF = sort_and_index(fitnessTT)
+        for i in range(mm):
+            for j in range(nn):
+
+                TNEW[i][j] = TT[(FF[i][0])][j]
+        #print(TNEW)
+        return TNEW
+
+    def getmaxval_index( a):#输出最大值及其位置
+        """ generated source for method getmaxval_index """
+        m = 0.0
+        b = [None]*len(a)
+        i = 0
+        while i < len(a):
+            b[i] = a[i]
+            i += 1
+        maxval = a[0]
+        j = 0
+        while j < len(a):
+            if a[j] > maxval:
+                maxval = a[j]
+            j += 1
+        i = 0
+        while i < len(b):
+            if b[i] == maxval:
+                m = i
+                break
+            i += 1
+        dep2 = [None]*2
+        dep2[0] = maxval
+        dep2[1] = m
+        return dep2
+
+    def getminval_index( a):#输出最小值及其位置
+        """ generated source for method getminval_index """
+        m = 0.0
+        b = [None]*len(a)
+        i = 0
+        while i < len(a):
+            b[i] = a[i]
+            i += 1
+        minval = a[0]
+        i = 0
+        while i < len(a):
+            if a[i] < minval:
+                minval = a[i]
+            i += 1
+        i = 0
+        while i < len(a):
+            if b[i] == minval:
+                m = i
+                break
+            i += 1
+        dep = [None]*2
+        dep[0] = minval
+        dep[1] = m
+        return dep
+
+    def substract(left, right):#对应元素相减
+        """ generated source for method substract """
+        c=[left[i]-right[i] for i in range(len(left))]
+        return c
+    def add( left, right):
+        """ generated source for method add """
+        c_add=[left[i]+right[i] for i in range(len(left))]
+        return c_add
+
+    def multiply( left, right):
+        """ generated source for method multiply """
+        b=[right*left[i] for i in range(len(left))]
+        return b
+
+    def zero( trial):#取全0列表
+        """ generated source for method zero """
+        len1 = len(trial)
+        i = 0
+        while i < len1:
+            trial[i] = 0.0
+            i += 1
+        return trial
+
+    def CoulombLaws( C,a,N,D):
+        """ generated source for method CoulombLaws """
+        q = [None]*N
+        fit = [None]*N
+        i = 0
+        while i < N:
+            fit[i] = fit_func(C[i])
+            i += 1
+        #print(fit)
+        minval = getminval_index(fit)
+        maxval = getmaxval_index(fit)
+        fmin = minval[0]
+        fmax = maxval[0]
+        mindex = (minval[1])
+        i = 0
+        while i < N:
+            q[i] = (fit[i] - fmax) / (fmin - fmax)
+            i += 1
+        
+        #p = [None]*N
+        trial = [None]*D
+        f = establish_matrix(N,D)
+        r=establish_matrix(N,N)
+        for i in range(N):
+            for j in range(N):
+                if fit[j] !=fit[i]:
+                    r[i][j] = norm(substract(C[i], C[j])) / (norm(substract(multiply(add(C[i], C[j]), 0.5), C[mindex])) + 0.0000001)
+        p=establish_matrix(N,N)
+        for i in range(N):
+            for j in range(N):
+                if fit[j] !=fit[i]:
+                    if (((fit[i] - fmin) / (fit[j] - fit[i])) > random.random()) or (fit[j] <fit[i]):
+                        p[i][j] = 1.0
+                    else:
+                        p[i][j] = 0.0
+        for j in range(N):
+             
+            trial = zero(trial)
+            for i in range(N):
+                if i != j:
+                    if r[i][j] < a:
+                        for jj in range(D):
+                            trial[jj] = trial[jj] + (q[i] * r[i][j] / (a * a * a)) * p[i][j] * (C[i][jj] - C[j][jj])
+                            
+                    else:
+                        for jj in range(D):
+                            trial[jj] = trial[jj] + (q[i] / (r[i][j] * r[i][j])) * p[i][j] * (C[i][jj] - C[j][jj])
+            #print(trial)               
+            for tt in range(D):    
+            
+                f[j][tt] = trial[tt]
+            #print(f)
+            
+        return f
+
+    def NewtonianLaws( C, V, f, iterr,N,D):
+        """ generated source for method NewtonianLaws """
+        kv = 2.0 * (1.0 - ((iterr) / (Maxiter)))
+        ka = 0.8 * (1.0 + ((iterr) / (Maxiter)))
+        newCP1 = establish_matrix(N,D)
+        newV1 = establish_matrix(N,D)
+        for i in range(N):
+            for j in range(D):
+                newCP1[i][j] = (ka * random.random() * f[i][j] * deltaT * deltaT) + (kv * random.random() * V[i][j] * deltaT) + C[i][j]
+                newV1[i][j] = (newCP1[i][j] - C[i][j]) / deltaT
+        out_1=establish_matrix(N,D)
+        out_2=establish_matrix(N,D)
+        out1=list()
+        out1.append(out_1)
+        out1.append(out_2)
+        for i in range(N):
+            for j in range(D):
+                out1[0][i][j] = newCP1[i][j]
+        for i in range(N):
+            for j in range(D):
+                out1[1][i][j] = newV1[i][j]
+        return out1
+
+    def Memory( C, C_M,N,D):
+        """ generated source for method Memory """
+        fit_C_M = [None]*(N //4)
+        fit_C = [None]*N
+        for i in range(N // 4):
+            fit_C_M[i] = fit_func(C_M[i])
+            
+        for i in range(N):
+            fit_C[i] =fit_func(C[i])
+            
+        for i in range( N):
+            for j in range( N // 4):
+                if fit_C[i] < fit_C_M[j]:
+                    jj=0
+                    while jj < D:
+                        C_M[j][jj] = C[i][jj]
+                        jj += 1
+                    fit_C_M[j] = fit_C[i]
+                    break
+        return C_M
+
+    def Harmony_Constraint_Handling( C, C_M,N,D):
+        """ generated source for method Harmony_Constraint_Handling """
+        for i in range( N):
+            for j in range(D):
+                if (C[i][j] < Lower[j]) or (C[i][j] > Upper[j]):
+                    if random.random() < HMCR:
+                        C[i][j] = C_M[(math.floor(((N) / 4) * random.random()))][j]
+                        if random.random() < par:
+                            if random.random() < 0.5:
+                                C[i][j] = C[i][j] + bw * random.random()
+                            else:
+                                C[i][j] = C[i][j] - bw * random.random()
+                    C[i][j] = Lower[j] + (Upper[j] - Lower[j]) * random.random()
+                
+        return C
+    
+    def establish_matrix(n,m):
+        matrixA=[None]*n
+        for i in range(n):
+            matrixA[i]=[0]*m
+        return matrixA
+
+        #print(a)
+    def init():
+        """ generated source for method init """
+        CP=establish_matrix(N,D)
+        for i in range(N):
+            for j in range(D):
+                CP[i][j] = Lower[j] + (Upper[j] - Lower[j]) * random.random()
+
+        CP = sortedd(CP)
+        CP_MEM=establish_matrix(N//4,D)
+        fitness_MEM=[None]*N
+        for i in range(N//4):
+            for j in range(D):
+                CP_MEM[i][j] = CP[i][j]
+                
+            fitness_MEM[i] = fit_func(CP[i])
+            
+        max2 = getmaxval_index(substract(Upper, Lower))
+        a = 0.1 * max2[0]
+        return(CP,a,CP_MEM)
+        #print(a)
+
+
+    def solution(CP,a,iter1,CP_MEM,N,D):
+        """ generated source for method solution """
+        
+        V=establish_matrix(N,D)
+        deltaT=1.0
+        new_CPP=establish_matrix(N,D)
+        new_V=establish_matrix(N,D)
+
+            #CoulombLaws(CP,a)
+        f1=CoulombLaws(CP,a,N,D);
+        outt=NewtonianLaws(CP,V,f1,iter1,N,D);
+
+        for i in range(N):
+            for j in range(D):
+                new_CPP[i][j] = outt[0][i][j]
+                new_V[i][j] = outt[1][i][j]
+        new_CPP = Harmony_Constraint_Handling(new_CPP, CP_MEM,N,D)
+        for i in range(N):
+            if fit_func(new_CPP[i]) < fit_func(CP[i]):
+                for j in range(D):
+                    CP[i][j] = new_CPP[i][j]
+                        
+                
+        for i in range(N):
+            for j in range(D):
+                V[i][j] = new_V[i][j]
+        CP_MEM = Memory(CP, CP_MEM,N,D)
+        CP_MEM = sortedd(CP_MEM)
+        #best.append(fit_func(CP_MEM[0]))
+            
+        BEST=[None]*D
+        for j in range(D):
+                # addition of two vectors
+                # end of vector substraction method
+                # addition of two vectors
+                # end of vector addition method
+                # multiplying a vector with a constant
+            BEST[j] = CP_MEM[0][j]
+                
+        f_BEST = fit_func(BEST)
+
+        return CP
+
+    from random import shuffle
+    def divide_gropus(initial_nests,groups):
+
+        shuffle(initial_nests) #重排序
+          #分成n组
+        m = int(len(initial_nests)/groups)  # 分成5组，每组多少个巢
+        nests_groups = []
+        for i in range(0, len(initial_nests), m):
+            nests_groups.append([initial_nests[i:i+m],[fit_func(j) for j in initial_nests[i:i+m]]])
+
+        return nests_groups
+    def best_std_fit_groupindex(groups):
+        std=list()
+        for i in range(numb_groups):
+            std.append(np.std(groups[i]))
+        
+        return std
+    def exhange_groups(population):
+        fit=[]
+        for i in range(len(population)):
+            fit.append([fit_func(j) for j in population[i]])
+        std=best_std_fit_groupindex(fit)
+        best_std_index=std.index(min(std))
+        fit_min=[None]*numb_groups
+        for i in range(numb_groups):
+            fit_min[i]=min(fit[i])
+        best_fit_index=fit_min.index(min(fit_min))
+        
+        best_fit=999999999999999
+        
+        if best_fit>min(fit_min):
+            best_fit=min(fit_min)
+        best_fit_all.append(best_fit)
+        for i in range(len(population)):
+            population[i]=sortedd(population[i])
+        leader=population[best_std_index]
+        if best_std_index==best_fit_index:#如果最优std与fit出现在同一组，则其他组最优的fit替换本组最差fit，else 将最优std平均到各组替换最差
+
+            for i in range(numb_groups):
+                if i!=best_std_index:
+                    population[best_std_index][len(leader)-i-1]=population[i][0]
+        else:
+            for i in range(numb_groups):
+                if i!=best_std_index:
+                    population[i][-(len(leader)//(numb_groups-1)):]=random.sample(leader, (len(leader)//(numb_groups-1))) 
+        return population,best_fit_all
+    def irta_MCSS(population,iter1,Maxiter=99):
+        iter1+=1
+
+        for i in range(numb_groups):
+            population[i]=solution(population[i],a,iter1,CP_MEM,20,D)
+        population2,best_fit2= exhange_groups(population,)
+            #print(best_fit2)
+        if iter1<Maxiter: 
+            return irta_MCSS(population2,iter1)
+        else:
+            return best_fit2
+
+
+class CSS():
+    def sort_and_index(self, A):
+        """ generated source for method sort_and_index """
+        outt=sorted(enumerate(A), key=lambda x:x[1])
+        return outt
+
+    def norm( self,x):#sqart(x**2+y**2)
+        """ generated source for method norm """
+        len1 = len(x)
+        sum1 = 0.0
+        i = 0
+        for i in range(len1):
+            sum1 += x[i] * x[i]
+        return math.sqrt(sum1)
+
+    def sortedd( self,TT):#按fitness大小对solution进行排序（从小到大）
+        """ generated source for method sorted """
+        mm = len(TT)
+        nn = len(TT[0])
+        TNEW = self.establish_matrix(mm,nn)
+        fitnessTT = [None]*mm
+        
+        for i in range(mm):
+            fitnessTT[i] = fit_func(TT[i])
+            
+        FF = self.sort_and_index(fitnessTT)
+        for i in range(mm):
+            for j in range(nn):
+
+                TNEW[i][j] = TT[(FF[i][0])][j]
+        #print(TNEW)
+        return TNEW
+
+    def getmaxval_index( self,a):#输出最大值及其位置
+        """ generated source for method getmaxval_index """
+        m = 0.0
+        b = [None]*len(a)
+        i = 0
+        while i < len(a):
+            b[i] = a[i]
+            i += 1
+        maxval = a[0]
+        j = 0
+        while j < len(a):
+            if a[j] > maxval:
+                maxval = a[j]
+            j += 1
+        i = 0
+        while i < len(b):
+            if b[i] == maxval:
+                m = i
+                break
+            i += 1
+        dep2 = [None]*2
+        dep2[0] = maxval
+        dep2[1] = m
+        return dep2
+
+    def getminval_index( self,a):#输出最小值及其位置
+        """ generated source for method getminval_index """
+        m = 0.0
+        b = [None]*len(a)
+        i = 0
+        while i < len(a):
+            b[i] = a[i]
+            i += 1
+        minval = a[0]
+        i = 0
+        while i < len(a):
+            if a[i] < minval:
+                minval = a[i]
+            i += 1
+        i = 0
+        while i < len(a):
+            if b[i] == minval:
+                m = i
+                break
+            i += 1
+        dep = [None]*2
+        dep[0] = minval
+        dep[1] = m
+        return dep
+
+    def substract(self,left, right):#对应元素相减
+        """ generated source for method substract """
+        c=[left[i]-right[i] for i in range(len(left))]
+        return c
+    def add(self, left, right):
+        """ generated source for method add """
+        c_add=[left[i]+right[i] for i in range(len(left))]
+        return c_add
+
+    def multiply(self, left, right):
+        """ generated source for method multiply """
+        b=[right*left[i] for i in range(len(left))]
+        return b
+
+    def zero(self, trial):#取全0列表
+        """ generated source for method zero """
+        len1 = len(trial)
+        i = 0
+        while i < len1:
+            trial[i] = 0.0
+            i += 1
+        return trial
+
+    def CoulombLaws( self,C,a):
+        """ generated source for method CoulombLaws """
+        q = [None]*N
+        fit = [None]*N
+        i = 0
+        while i < N:
+            fit[i] = fit_func(C[i])
+            i += 1
+        #print(fit)
+        minval = self.getminval_index(fit)
+        maxval = self.getmaxval_index(fit)
+        fmin = minval[0]
+        fmax = maxval[0]
+        mindex = (minval[1])
+        i = 0
+        while i < N:
+            q[i] = (fit[i] - fmax) / (fmin - fmax)
+            i += 1
+        
+        #p = [None]*N
+        trial = [None]*D
+        f =self.establish_matrix(N,D)
+        r=self.establish_matrix(N,N)
+        for i in range(N):
+            for j in range(N):
+                
+                r[i][j] = self.norm(self.substract(C[i], C[j])) / (self.norm(self.substract(self.multiply(self.add(C[i], C[j]), 0.5), C[mindex])) + 0.0000001)
+        p=self.establish_matrix(N,N)
+        for i in range(N):
+            for j in range(N):
+                if fit[j] !=fit[i]:
+                    if (((fit[i] - fmin) / (fit[j] - fit[i])) > random.random()) or (fit[j] <fit[i]):
+                        p[i][j] = 1.0
+                    else:
+                        p[i][j] = 0.0
+        for j in range(N):
+             
+            trial = self.zero(trial)
+            for i in range(N):
+                if i != j:
+                    if r[i][j] < a:
+                        for jj in range(D):
+                            trial[jj] = trial[jj] + (q[i] * r[i][j] / (a * a * a)) * p[i][j] * (C[i][jj] - C[j][jj])
+                            
+                    else:
+                        for jj in range(D):
+                            trial[jj] = trial[jj] + (q[i] / (r[i][j] * r[i][j])) * p[i][j] * (C[i][jj] - C[j][jj])
+            #print(trial)               
+            for tt in range(D):    
+            
+                f[j][tt] = trial[tt]
+            #print(f)
+            
+        return f
+
+    def NewtonianLaws(self, C, V, f, iterr):
+        """ generated source for method NewtonianLaws """
+        kv = 2.0 * (1.0 - ((iterr) / (Maxiter)))
+        ka = 0.8 * (1.0 + ((iterr) / (Maxiter)))
+        newCP1 = self.establish_matrix(N,D)
+        newV1 = self.establish_matrix(N,D)
+        for i in range(N):
+            for j in range(D):
+                newCP1[i][j] = (ka * random.random() * f[i][j] * deltaT * deltaT) + (kv * random.random() * V[i][j] * deltaT) + C[i][j]
+                newV1[i][j] = (newCP1[i][j] - C[i][j]) / deltaT
+        out_1=self.establish_matrix(N,D)
+        out_2=self.establish_matrix(N,D)
+        out1=list()
+        out1.append(out_1)
+        out1.append(out_2)
+        for i in range(N):
+            for j in range(D):
+                out1[0][i][j] = newCP1[i][j]
+        for i in range(N):
+            for j in range(D):
+                out1[1][i][j] = newV1[i][j]
+        return out1
+
+    def Memory(self, C, C_M):
+        """ generated source for method Memory """
+        fit_C_M = [None]*(N //4)
+        fit_C = [None]*N
+        i = 0
+        while i < N // 4:
+            fit_C_M[i] = fit_func(C_M[i])
+            i += 1
+        i = 0
+        while i < N:
+            fit_C[i] =fit_func(C[i])
+            i += 1
+        i = 0
+        while i < N:
+            j=0
+            while j < N / 4:
+                if fit_C[i] < fit_C_M[j]:
+                    jj=0
+                    while jj < D:
+                        C_M[j][jj] = C[i][jj]
+                        jj += 1
+                    fit_C_M[j] = fit_C[i]
+                    break
+                j += 1
+            i += 1
+        return C_M
+
+    def Harmony_Constraint_Handling( self,C, C_M):
+        """ generated source for method Harmony_Constraint_Handling """
+        i = 0
+        while i < N:
+            j=0
+            while j < D:
+                if (C[i][j] < Lower[j]) or (C[i][j] > Upper[j]):
+                    if random.random() < HMCR:
+                        C[i][j] = C_M[(math.floor(((N) / 4) * random.random()))][j]
+                        if random.random() < par:
+                            if random.random() < 0.5:
+                                C[i][j] = C[i][j] + bw * random.random()
+                            else:
+                                C[i][j] = C[i][j] - bw * random.random()
+                    C[i][j] = Lower[j] + (Upper[j] - Lower[j]) * random.random()
+                j += 1
+            i += 1
+        return C
+    
+    def establish_matrix(self,n,m):
+        matrixA=[None]*n
+        for i in range(n):
+            matrixA[i]=[0]*m
+        return matrixA
+    def init(self,):
+        """ generated source for method init """
+        CP=self.establish_matrix(N,D)
+        for i in range(N):
+            for j in range(D):
+                CP[i][j] = Lower[j] + (Upper[j] - Lower[j]) * random.random()
+
+        CP = self.sortedd(CP)
+        CP_MEM=self.establish_matrix(N//4,D)
+        fitness_MEM=[None]*N
+        for i in range(N//4):
+            for j in range(D):
+                CP_MEM[i][j] = CP[i][j]
+                
+            fitness_MEM[i] = fit_func(CP[i])
+            
+        max2 = self.getmaxval_index(self.substract(Upper, Lower))
+        a = 0.1 * max2[0]
+        return(CP,a,CP_MEM)
+        #print(a)
+
+    def solution(self,iter1,CP,a,CP_MEM):
+        """ generated source for method solution """
+
+        V=self.establish_matrix(N,D)
+
+        new_CPP=self.establish_matrix(N,D)
+        new_V=self.establish_matrix(N,D)
+        while iter1 < Maxiter-1:
+            #CoulombLaws(CP,a)
+            f1=self.CoulombLaws(CP,a);
+            outt=self.NewtonianLaws(CP,V,f1,iter1);
+
+            for i in range(N):
+                for j in range(D):
+                    new_CPP[i][j] = outt[0][i][j]
+                    new_V[i][j] = outt[1][i][j]
+            new_CPP = self.Harmony_Constraint_Handling(new_CPP, CP_MEM)
+            i=0
+            while i < N:
+                if fit_func(new_CPP[i]) < fit_func(CP[i]):
+                    j=0
+                    while j < D:
+                        CP[i][j] = new_CPP[i][j]
+                        j += 1
+                i += 1
+            i=0
+            while i < N:
+                j=0
+                while j < D:
+                    V[i][j] = new_V[i][j]
+                    j += 1
+                i += 1
+            CP_MEM = self.Memory(CP, CP_MEM)
+            CP_MEM = self.sortedd(CP_MEM)
+            #best.append(fit_func(CP_MEM[0]))
+            j=0
+            BEST=[None]*D
+            while j < D:
+                # addition of two vectors
+                # end of vector substraction method
+                # addition of two vectors
+                # end of vector addition method
+                # multiplying a vector with a constant
+                BEST[j] = CP_MEM[0][j]
+                j += 1
+            f_BEST = fit_func(BEST)
+            iter1 += 1
+            best_CSS.append(f_BEST)
+        out = self.establish_matrix(2,D)
+        # addition of two vectors
+        # end of vector substraction method
+        # addition of two vectors
+        # end of vector addition method
+        # multiplying a vector with a constant
+        j = 0
+        while j < D:
+            # addition of two vectors
+            # end of vector substraction method
+            # addition of two vectors
+            # end of vector addition method
+            # multiplying a vector with a constant
+            out[0][j] = BEST[j]
+            j += 1
+        out[1][0] = fit_func(BEST)
+        return out
+CSS1=CSS()
+
+# coding: utf-8
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+ 
+
+class PSO():
+	# PSO参数设置
+    def __init__(self,pUpper,pLower, pN, dim, max_iter):
+        self.w = 0.8
+        self.c1 = 2
+        self.c2 = 2
+        self.r1 = 0.6
+        self.r2 = 0.3
+        self.Xmax = Upper
+        self.Xmin = Lower
+        self.pN = pN  # 粒子数量
+        self.dim = dim  # 搜索维度
+        self.max_iter = max_iter  # 迭代次数
+        #self.X = np.array(CP) # 所有粒子的位置和速度
+        self.V = np.zeros((self.pN, self.dim))
+        self.pbest = np.zeros((self.pN, self.dim))  # 个体经历的最佳位置和全局最佳位置
+        self.gbest = np.zeros((1, self.dim))
+        self.p_fit = np.zeros(self.pN)  # 每个个体的历史最佳适应值
+        #self.fit = 1e10  # 全局最佳适应值
+        
+
+ 
+    #初始化种群
+    def init_Population(self,CP,fit=1e10):
+        X=CP
+        for i in range(self.pN):      #因为要随机生成pN个数据，所以需要循环pN次
+            for j in range(self.dim):      #每一个维度都需要生成速度和位置，故循环dim次
+                #self.X[i][j] = random.uniform(0, 1)
+                self.V[i][j] = random.uniform(0, 1)
+            self.pbest[i] = X[i]     #其实就是给self.pbest定值
+            tmp =fit_func(X[i])
+            #print(tmp)#得到现在最优
+            self.p_fit[i] = tmp    #这个个体历史最佳的位置
+            if tmp < fit:   #得到现在最优和历史最优比较大小，如果现在最优大于历史最优，则更新历史最优
+                fit = tmp
+                self.gbest = X[i]
+        self.X = np.array(CP) 
+        self.fit=fit
+    def iterator(self):
+        fitness = []
+        for t in range(self.max_iter):
+            for i in range(self.pN):  # 更新gbest\pbest
+                temp = fit_func(self.X[i])
+                if temp < self.p_fit[i]:  # 更新个体最优
+                    self.p_fit[i] = temp
+                    self.pbest[i] = self.X[i]
+                    if self.p_fit[i] < self.fit:  # 更新全局最优
+                        self.gbest = self.X[i]
+                        self.fit = self.p_fit[i]
+            for i in range(self.pN):
+                for j in range(self.dim):
+                    self.V[i] = self.w * self.V[i] + self.c1 * self.r1 * (self.pbest[i] - self.X[i]) + \
+                                self.c2 * self.r2 * (self.gbest - self.X[i])
+                    self.X[i] = self.X[i] + self.V[i]
+                    if self.X[i][j] > self.Xmax[j]:
+                        self.X[i][j] = self.Xmax[j]
+                    elif self.X[i][j] < self.Xmin[j]:
+                        self.X[i][j] = self.Xmin[j]
+
+            fitness.append(self.fit)
+          # print(self.fit)  # 输出最优值
+        return fitness
+        
+        
+        
+        
+        
+        
+
+
+
+# f20 extends f_xj //Levy function         f(x)=0   @x=(1,1,1...) -10<x[i]<10 
+
+#Beale f(x)=0    @x=(3,0.5)   -4.5<x[i]<4.5, i = 1, 2.
+def fit_func(x):
+
+    first=0.0
+    first=((1.5-x[0]+x[0]*x[1])*(1.5-x[0]+x[0]*x[1]))+((2.25-x[0]+x[0]*x[1]*x[1])*(2.25-x[0]+x[0]*x[1]*x[1]))+((2.625-x[0]+x[0]*x[1]*x[1]*x[1])*(2.625-x[0]+x[0]*x[1]*x[1]*x[1]))
+    return first
+N=100
+D=2
+Lower=[-4.5]*D
+Upper=[4.5]*D
+Maxiter=100
+import random
+import math
+import numpy as np
+
+deltaT=1.0
+HMCR=0.02
+par=0.1
+bw=0.1
+numb_groups=5
+
+
+
+
+my_pso = PSO(pUpper=Upper,pLower=Lower,pN=N, dim=D, max_iter=Maxiter)
+
+
+import copy
+experiment_count=3#实验次数 一般取30，可以先取1验证下实验结果
+fitness_CSS=[]
+fitness_MCSS=[]
+fitness_PSO=[]
+#best_location=[None]*experiment_count
+for i in range(experiment_count):
+    iter1=0
+    best=list()
+    CP,a,CP_MEM=init()
+    CP_pso = copy.deepcopy(CP)
+    xp = copy.deepcopy(CP)
+    fit0=[]
+    for j in CP:
+        fit0.append(fit_func(j))
+    best_CSS=[]
+    best_CSS.append(min(fit0))    
+    out=CSS1.solution(iter1,xp,a,CP_MEM)
+    #print(best)
+    fitness_CSS.append(best_CSS)
+    #best_location[i]=([out[0],fit_func(out[0])])
+
+    #print(best_fit_average_CSS)
+    #print("\n")
+    population_all=divide_gropus(CP,numb_groups)
+    population=[None]*numb_groups
+    best_fit_all=list()
+    for m in range(numb_groups):
+        population[m]=population_all[m][0]
+    population,best_fit=exhange_groups(population)
+    #print(np.array(irta_MCSS(population,iter1)))
+    fitness_MCSS.append(irta_MCSS(population,iter1,))
+    my_pso.init_Population(CP_pso)     
+    fitness_PSO.append(my_pso.iterator())
+    #print(my_pso.iterator())
+    #print("\n")
+fit_average_CSS=np.array(fitness_CSS).mean(axis=0)    
+fit_average_MCSS=np.array(fitness_MCSS).mean(axis=0) 
+fit_average_PSO=np.array(fitness_PSO).mean(axis=0) 
+every_best_fit_CSS=[]
+every_best_fit_MCSS=[]
+every_best_fit_PSO=[]
+for i in range(experiment_count):
+    every_best_fit_CSS.append(fitness_CSS[i][-1])
+    every_best_fit_MCSS.append(fitness_MCSS[i][-1])
+    every_best_fit_PSO.append(fitness_PSO[i][-1])
+
+CSS="D:\experiment\CSS\\bela_CSS.txt"
+MCSS="D:\experiment\CSS\\bela_MCSS.txt"
+PSO="D:\experiment\CSS\\bela_PSO.txt"
+every_best_CSS="D:\experiment\CSS\\bela_every_CSS.txt"
+every_best_MCSS="D:\experiment\CSS\\bela_every_MCSS.txt"
+every_best_PSO="D:\experiment\CSS\\bela_every_PSO.txt"
+f1 = open(CSS, "w",encoding='utf-8')
+for i in fit_average_CSS:
+    print(i,file=f1)
+#print(list1,file=f1)
+f1.close()
+
+f2 = open(MCSS,"w",encoding='utf-8')
+for i in fit_average_MCSS:
+    print(i,file=f2)
+f2.close()
+
+f5 = open(PSO,"w",encoding='utf-8')
+for i in fit_average_PSO:
+    print(i,file=f5)
+f5.close()
+
+f3 = open(every_best_CSS,"w",encoding='utf-8')
+for i in every_best_fit_CSS:
+    print(i,file=f3)
+f3.close()
+
+f4 = open(every_best_MCSS,"w",encoding='utf-8')
+for i in every_best_fit_MCSS:
+    print(i,file=f4)
+f4.close()
+
+f6 = open(every_best_PSO,"w",encoding='utf-8')
+for i in every_best_fit_PSO:
+    print(i,file=f6)
+f6.close()
+
+import matplotlib as mpl  
+import matplotlib.pyplot as plt
+plt.figure(figsize=(7.5,7.5))#设置图片大小
+plt.title("Performance",fontsize='large',verticalalignment='center')#标题
+#图标显示位置
+itera=list()
+for i in range(Maxiter):
+    itera.append(i)
+plt.xlim([min(itera),max(itera)])
+plt.ylim([min(fit_average_MCSS),max(fit_average_MCSS)])
+#plt.ylim(0,0.0000000000003)
+plt.ylabel('Best_fitness')
+plt.xlabel('Iteration')
+def plot_ROC(x_,y_,color,make,curve_label):#绘制ROC和AUC，来判断模型的好坏
+    
+    plt.plot(x_,y_,color,marker=make,label=curve_label)
+    plt.legend(loc='lower right')
+plot_ROC(itera,fit_average_CSS,'b','.','CSS')
+#plot_ROC(itera,fitness,'y','.','PSO')
+plot_ROC(itera,fit_average_MCSS,'r','.','MCSS')
+plot_ROC(itera,fit_average_PSO,'k','.','PSO')
+
+fit_average_PSO
+
+
+
